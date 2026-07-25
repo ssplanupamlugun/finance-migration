@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: finance-migration
+
+migration:
+  base-url: http://host.docker.internal:9090
+  bank-account-create-url: /services/EGF/api/migration/bankaccounts/create

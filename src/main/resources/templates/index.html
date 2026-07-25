@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Finance Master Migration</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <div class="layout">
+
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+        <div class="main-content">
+
+            <div class="container-fluid p-4">
+
+
+                <!-- Content -->
+
+
+                <div class="mb-4">
+
+                    <h2 class="fw-bold">
+                        Finance Master Migration
+                    </h2>
+
+                    <p class="text-muted">
+                        Upload a Finance migration workbook. Only supported sheets will be migrated
+                        automatically.
+                    </p>
+
+                </div>
+
+                <!-- Migration Form -->
+
+                <div class="card shadow-sm border-0">
+
+                    <div class="card-header bg-primary text-white">
+
+                        <h5 class="mb-0">
+
+                            <i class="bi bi-file-earmark-spreadsheet me-2"></i>
+
+                            Migration Workbook
+
+                        </h5>
+
+                    </div>
+
+                    <div class="card-body">
+
+                        <form enctype="multipart/form-data" id="migrationForm">
+
+                            <!-- Session -->
+
+                            <div class="mb-4">
+
+                                <label class="form-label fw-semibold">
+
+                                    SESSIONID
+
+                                </label>
+
+                                <input type="text" class="form-control" id="sessionId" name="sessionId"
+                                    placeholder="Enter Finance SESSIONID" required>
+
+                                <div class="form-text">
+                                    Copy the SESSIONID cookie from the Finance application after login.
+                                </div>
+
+                            </div>
+
+                            <!-- Workbook -->
+
+                            <div class="mb-4">
+
+                                <label class="form-label fw-semibold">
+
+                                    Excel Workbook
+
+                                </label>
+
+                                <input type="file" class="form-control" id="file" name="file" accept=".xlsx,.xls"
+                                    required>
+
+                                <div class="form-text">
+                                    Upload a workbook containing one or more Finance master sheets.
+                                </div>
+
+                            </div>
+
+                            <!-- Selected File -->
+
+                            <div class="mb-4">
+
+                                <span class="fw-semibold">
+                                    Selected Workbook :
+                                </span>
+
+                                <span id="selectedFile" class="text-primary">
+
+                                    No workbook selected
+
+                                </span>
+
+                            </div>
+
+                            <!-- Progress -->
+
+                            <div id="uploadSection" class="mb-4" style="display:none;">
+
+                                <div class="progress">
+
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                        style="width:100%;">
+
+                                        Uploading...
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <!-- Buttons -->
+
+                            <div class="d-flex gap-3">
+
+                                <button type="submit" id="submitBtn" class="btn btn-primary">
+
+                                    <i class="bi bi-play-fill me-2"></i>
+
+                                    Start Migration
+
+                                </button>
+
+                                <button type="reset" class="btn btn-outline-secondary">
+
+                                    <i class="bi bi-arrow-clockwise me-2"></i>
+
+                                    Reset
+
+                                </button>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+                <!-- Supported Sheets -->
+                <div class="card shadow-sm border-0 mt-4">
+
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="bi bi-table me-2"></i>
+                            Supported Sheets
+                        </h5>
+                    </div>
+
+                    <div class="card-body">
+
+                        <table class="table table-bordered table-hover align-middle mb-0">
+
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Sheet Name</th>
+                                    <th>Description</th>
+                                    <th>Support Status</th>
+                                    <th>Migration Status</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                <tr>
+                                    <td>Bank Account</td>
+                                    <td>Bank account master migration.</td>
+                                    <td>
+                                        <span class="badge text-bg-success">Supported</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge text-bg-primary">
+                                            <span class="spinner-border spinner-border-sm me-1"></span>
+                                            Processing
+                                        </span>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>Bank</td>
+                                    <td>Bank master migration.</td>
+                                    <td>
+                                        <span class="badge text-bg-warning">Coming Soon</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge text-bg-secondary">Pending</span>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>Bank Branch</td>
+                                    <td>Bank branch master migration.</td>
+                                    <td>
+                                        <span class="badge text-bg-warning">Coming Soon</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge text-bg-success">
+                                            <i class="bi bi-check-circle-fill me-1"></i>
+                                            Completed
+                                        </span>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>Fund</td>
+                                    <td>Fund master migration.</td>
+                                    <td>
+                                        <span class="badge text-bg-warning">Coming Soon</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge text-bg-danger">
+                                            <i class="bi bi-x-circle-fill me-1"></i>
+                                            Failed
+                                        </span>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>Chart of Accounts</td>
+                                    <td>COA master migration.</td>
+                                    <td>
+                                        <span class="badge text-bg-warning">Coming Soon</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge text-bg-secondary">Pending</span>
+                                    </td>
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+
+
+            </div>
+
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script th:src="@{/js/app.js}"></script>
+
+    <script th:src="@{/js/upload.js}"></script>
+
+</body>
+
+</html>
