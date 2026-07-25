@@ -22,7 +22,4 @@ public class ApiResponseDto {
     private Object data;
 
     private String error;
-
-    @Builder.Default
-    private LocalDateTime timestamp = LocalDateTime.now();
 }
