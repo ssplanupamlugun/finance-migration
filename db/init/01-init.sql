@@ -1,0 +1,9 @@
+CREATE TABLE sheet_migration (
+    id BIGSERIAL PRIMARY KEY,
+    sheet_name VARCHAR(100) NOT NULL UNIQUE,
+    message TEXT,
+    supported BOOLEAN NOT NULL DEFAULT FALSE,
+    status VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

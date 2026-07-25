@@ -2,6 +2,18 @@ spring:
   application:
     name: finance-migration
 
+  datasource:
+    url: jdbc:postgresql://postgres:5432/financemigration
+    username: postgres
+    password: postgres
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+server:
+  port: 8080    
+
 migration:
   base-url: http://host.docker.internal:9090
   bank-account-create-url: /services/EGF/api/migration/bankaccounts/create

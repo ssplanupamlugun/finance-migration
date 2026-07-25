@@ -1,4 +1,22 @@
 services:
+  postgres:
+    image: postgres:12
+    container_name: finance-postgres
+
+    environment:
+      POSTGRES_DB: financemigration
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d
+
+    restart: unless-stopped
+
   finance-migration:
     container_name: finance-migration
 
@@ -9,7 +27,18 @@ services:
     ports:
       - "8080:8080"
 
+    depends_on:
+      - postgres
+
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/financemigration
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
     restart: unless-stopped
+
+volumes:
+  postgres_data:

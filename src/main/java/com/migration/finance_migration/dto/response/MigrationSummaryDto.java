@@ -4,8 +4,7 @@ public record MigrationSummaryDto(
 
         String sheetName,
         int totalRecords,
-        int successCount,
-        int failureCount,
+        boolean isSuccess,
         String status
 
 ) {

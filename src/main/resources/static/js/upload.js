@@ -43,6 +43,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         formData.append("file", file);
         formData.append("sessionId", sessionId);
+        document.querySelectorAll(".sheet-name").forEach(cell => {
+            updateSheetStatus(cell.textContent.trim(), "PROCESSING");
+        });
 
         try {
 
@@ -51,24 +54,40 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: formData
             });
 
-            if (!response.ok) {
-                throw new Error("Migration failed.");
-            }
-
             const result = await response.json();
 
-            console.log(result);
+            if (result.success) {
 
-            alert("Migration completed successfully.");
+                updateSheetStatus(
+                    result.data.sheetName,
+                    result.data.isSuccess ? "COMPLETED" : "FAILED",
+                    result.data.status
+                );
 
-            // TODO:
-            // Display the migration summary in a table instead of alert.
+                alert(result.message);
+                console.log(result.data);
 
-        } catch (error) {
+            } else {
 
-            console.error(error);
+                updateSheetStatus(
+                    selectedSheetName,
+                    "FAILED",
+                    result.error ?? result.message
+                );
 
-            alert(error.message);
+                alert(result.error ?? result.message);
+            }
+
+        } catch (err) {
+
+            updateSheetStatus(
+                selectedSheetName,
+                "FAILED",
+                "Unable to connect to the server."
+            );
+
+            alert("Unable to connect to the server.");
+            console.error(err);
 
         } finally {
 
@@ -77,11 +96,63 @@ document.addEventListener("DOMContentLoaded", () => {
             submitBtn.disabled = false;
 
             submitBtn.innerHTML = `
-                <i class="bi bi-play-fill me-2"></i>
-                Start Migration
-            `;
+        <i class="bi bi-play-fill me-2"></i>
+        Start Migration
+    `;
         }
 
     });
+
+    function updateSheetStatus(sheetName, status, message = "") {
+
+        const row = document.getElementById(`sheet-${sheetName}`);
+
+        if (!row) return;
+
+        const statusCell = row.querySelector(".status-cell");
+        const messageCell = row.querySelector(".message-cell");
+
+        let statusHtml = "";
+
+        switch (status) {
+
+            case "PROCESSING":
+                statusHtml = `
+                <span class="badge text-bg-primary">
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                    Processing
+                </span>
+            `;
+                break;
+
+            case "COMPLETED":
+                statusHtml = `
+                <span class="badge text-bg-success">
+                    <i class="bi bi-check-circle-fill me-1"></i>
+                    Completed
+                </span>
+            `;
+                break;
+
+            case "FAILED":
+                statusHtml = `
+                <span class="badge text-bg-danger">
+                    <i class="bi bi-x-circle-fill me-1"></i>
+                    Failed
+                </span>
+            `;
+                break;
+
+            default:
+                statusHtml = `
+                <span class="badge text-bg-secondary">
+                    Pending
+                </span>
+            `;
+        }
+
+        statusCell.innerHTML = statusHtml;
+        messageCell.textContent = message;
+    }
 
 });

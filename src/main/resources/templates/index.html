@@ -181,76 +181,63 @@
                             <thead class="table-light">
                                 <tr>
                                     <th>Sheet Name</th>
-                                    <th>Description</th>
                                     <th>Support Status</th>
                                     <th>Migration Status</th>
+                                    <th>Message</th>
                                 </tr>
                             </thead>
 
-                            <tbody>
+                            <tbody id="sheetMigrationsTableBody">
 
-                                <tr>
-                                    <td>Bank Account</td>
-                                    <td>Bank account master migration.</td>
-                                    <td>
-                                        <span class="badge text-bg-success">Supported</span>
+                                <tr th:each="sheet : ${sheetMigrations}" th:id="'sheet-' + ${sheet.sheetName}">
+
+                                    <!-- Sheet Name -->
+                                    <td class="sheet-name" th:text="${sheet.sheetName}">
                                     </td>
+
+                                    <!-- Support Status -->
                                     <td>
-                                        <span class="badge text-bg-primary">
-                                            <span class="spinner-border spinner-border-sm me-1"></span>
-                                            Processing
+                                        <span th:if="${sheet.supported}" class="badge text-bg-success">
+                                            Supported
+                                        </span>
+
+                                        <span th:unless="${sheet.supported}" class="badge text-bg-warning">
+                                            Coming Soon
                                         </span>
                                     </td>
-                                </tr>
 
-                                <tr>
-                                    <td>Bank</td>
-                                    <td>Bank master migration.</td>
-                                    <td>
-                                        <span class="badge text-bg-warning">Coming Soon</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge text-bg-secondary">Pending</span>
-                                    </td>
-                                </tr>
+                                    <!-- Migration Status -->
+                                    <td class="status-cell">
 
-                                <tr>
-                                    <td>Bank Branch</td>
-                                    <td>Bank branch master migration.</td>
-                                    <td>
-                                        <span class="badge text-bg-warning">Coming Soon</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge text-bg-success">
-                                            <i class="bi bi-check-circle-fill me-1"></i>
-                                            Completed
+                                        <span th:switch="${sheet.status.name()}">
+
+                                            <span th:case="'PENDING'" class="badge text-bg-secondary">
+                                                Pending
+                                            </span>
+
+                                            <span th:case="'PROCESSING'" class="badge text-bg-primary">
+                                                <span class="spinner-border spinner-border-sm me-1"></span>
+                                                Processing
+                                            </span>
+
+                                            <span th:case="'COMPLETED'" class="badge text-bg-success">
+                                                <i class="bi bi-check-circle-fill me-1"></i>
+                                                Completed
+                                            </span>
+
+                                            <span th:case="'FAILED'" class="badge text-bg-danger">
+                                                <i class="bi bi-x-circle-fill me-1"></i>
+                                                Failed
+                                            </span>
+
                                         </span>
-                                    </td>
-                                </tr>
 
-                                <tr>
-                                    <td>Fund</td>
-                                    <td>Fund master migration.</td>
-                                    <td>
-                                        <span class="badge text-bg-warning">Coming Soon</span>
                                     </td>
-                                    <td>
-                                        <span class="badge text-bg-danger">
-                                            <i class="bi bi-x-circle-fill me-1"></i>
-                                            Failed
-                                        </span>
-                                    </td>
-                                </tr>
 
-                                <tr>
-                                    <td>Chart of Accounts</td>
-                                    <td>COA master migration.</td>
-                                    <td>
-                                        <span class="badge text-bg-warning">Coming Soon</span>
+                                    <!-- Message -->
+                                    <td class="message-cell" th:text="${sheet.message ?: ''}">
                                     </td>
-                                    <td>
-                                        <span class="badge text-bg-secondary">Pending</span>
-                                    </td>
+
                                 </tr>
 
                             </tbody>

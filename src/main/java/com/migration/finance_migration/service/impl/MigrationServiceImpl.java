@@ -1,73 +1,119 @@
 package com.migration.finance_migration.service.impl;
 
 import com.migration.finance_migration.dto.response.MigrationSummaryDto;
+import com.migration.finance_migration.entity.SheetMigration;
+import com.migration.finance_migration.repository.SheetMigrationRepository;
+import com.migration.finance_migration.service.MigrationService;
+import com.migration.finance_migration.service.SheetMigrationService;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.migration.finance_migration.enums.SheetName;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import com.migration.finance_migration.service.MigrationService;
-import com.migration.finance_migration.service.SheetMigrationService;
 
 @Service
 @RequiredArgsConstructor
-public class MigrationServiceImpl implements  MigrationService {
+public class MigrationServiceImpl implements MigrationService {
 
-    private final List<SheetMigrationService> migrationServices;
+        private final List<SheetMigrationService> migrationServices;
+        private final SheetMigrationRepository sheetMigrationRepository;
 
-    @Override
-    public List<MigrationSummaryDto> migrateWorkbook(
-            MultipartFile file,
-            String sessionId
-    ) throws IOException {
+        @Override
+        public List<MigrationSummaryDto> migrateWorkbook(
+                        MultipartFile file,
+                        String sessionId) throws IOException {
 
-        Map<String, SheetMigrationService> serviceMap =
-                migrationServices.stream()
-                        .collect(Collectors.toMap(
-                                service -> service.getSheetName().toLowerCase(),
-                                Function.identity()
-                        ));
+                Map<SheetName, SheetMigrationService> serviceMap = migrationServices.stream()
+                                .collect(Collectors.toMap(
+                                                SheetMigrationService::getSheetName,
+                                                Function.identity()));
 
-        List<MigrationSummaryDto> summaries = new ArrayList<>();
+                Map<String, SheetMigration> sheetConfigMap = getSheetConfigMap();
 
-        try (Workbook workbook =
-                     WorkbookFactory.create(file.getInputStream())) {
+                List<MigrationSummaryDto> summaries = new ArrayList<>();
 
-            for (Sheet sheet : workbook) {
+                try (Workbook workbook = WorkbookFactory.create(file.getInputStream())) {
 
-                String sheetName = sheet.getSheetName().trim().toLowerCase();
+                        for (Sheet sheet : workbook) {
 
-                SheetMigrationService service = serviceMap.get(sheetName);
+                                String sheetName = sheet.getSheetName().trim().toLowerCase();
 
-                if (service != null) {
+                                SheetMigration sheetConfig = sheetConfigMap.get(sheetName);
 
-                    summaries.add(
-                            service.migrate(sheet, sessionId)
-                    );
+                                // Sheet not configured
+                                if (sheetConfig == null) {
+                                        summaries.add(
+                                                        new MigrationSummaryDto(
+                                                                        sheet.getSheetName(),
+                                                                        0,
+                                                                        false,
+                                                                        "Skipped (Sheet not configured)"));
+                                        continue;
+                                }
 
-                } else {
+                                // Sheet configured but disabled
+                                if (!Boolean.TRUE.equals(sheetConfig.getSupported())) {
 
-                    summaries.add(
-                            new MigrationSummaryDto(
-                                    sheet.getSheetName(),
-                                    0,
-                                    0,
-                                    0,
-                                    "Skipped (No Migration Service)"
-                            )
-                    );
+                                        summaries.add(
+                                                        new MigrationSummaryDto(
+                                                                        sheet.getSheetName(),
+                                                                        0,
+                                                                        false,
+                                                                        "Skipped (Sheet not supported)"));
+                                        continue;
+                                }
 
+                                // Migration service not implemented
+                                SheetMigrationService service = serviceMap.get(sheetName);
+
+                                if (service == null) {
+
+                                        summaries.add(
+                                                        new MigrationSummaryDto(
+                                                                        sheet.getSheetName(),
+                                                                        0,
+                                                                        false,
+                                                                        "Skipped (No Migration Service)"));
+                                        continue;
+                                }
+
+                                // Execute migration
+                                try {
+
+                                        MigrationSummaryDto summary = service.migrate(sheet, sessionId);
+
+                                        summaries.add(summary);
+
+                                } catch (Exception ex) {
+
+                                        summaries.add(
+                                                        new MigrationSummaryDto(
+                                                                        sheet.getSheetName(),
+                                                                        0,
+                                                                        false,
+                                                                        ex.getMessage()));
+                                }
+                        }
                 }
-            }
 
+                return summaries;
         }
 
-        return summaries;
-    }
+        private Map<String, SheetMigration> getSheetConfigMap() {
+                return sheetMigrationRepository.findAll()
+                                .stream()
+                                .collect(Collectors.toMap(
+                                                sheet -> sheet.getSheetName().trim().toLowerCase(),
+                                                Function.identity()));
+        }
+
 }
