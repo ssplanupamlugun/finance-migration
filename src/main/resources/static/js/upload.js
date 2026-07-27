@@ -1,51 +1,75 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-    const fileInput = document.getElementById("file");
-    const selectedFile = document.getElementById("selectedFile");
+    // ============================
+    // DOM Elements
+    // ============================
 
-    const form = document.getElementById("migrationForm");
+    const elements = {
+        form: document.getElementById("migrationForm"),
+        fileInput: document.getElementById("file"),
+        selectedFile: document.getElementById("selectedFile"),
+        sessionId: document.getElementById("sessionId"),
+        progressSection: document.getElementById("progressSection"),
+        submitBtn: document.getElementById("submitBtn")
+    };
 
-    const uploadSection = document.getElementById("uploadSection");
-    const submitBtn = document.getElementById("submitBtn");
+    // ============================
+    // Status Templates
+    // ============================
 
-    fileInput.addEventListener("change", () => {
+    const STATUS_BADGES = {
+        PENDING: `
+            <span class="badge text-bg-secondary">
+                Pending
+            </span>
+        `,
+        COMPLETED: `
+            <span class="badge text-bg-success">
+                <i class="bi bi-check-circle-fill me-1"></i>
+                Completed
+            </span>
+        `,
+        FAILED: `
+            <span class="badge text-bg-danger">
+                <i class="bi bi-x-circle-fill me-1"></i>
+                Failed
+            </span>
+        `
+    };
 
-        if (fileInput.files.length > 0) {
-            selectedFile.textContent = fileInput.files[0].name;
-        } else {
-            selectedFile.textContent = "No workbook selected";
-        }
+    // ============================
+    // Event Listeners
+    // ============================
 
+    elements.fileInput.addEventListener("change", () => {
+        elements.selectedFile.textContent =
+            elements.fileInput.files.length > 0
+                ? elements.fileInput.files[0].name
+                : "No workbook selected";
     });
 
-    form.addEventListener("submit", async (e) => {
+    elements.form.addEventListener("submit", handleMigration);
 
-        e.preventDefault();
+    // ============================
+    // Migration
+    // ============================
 
-        const file = fileInput.files[0];
-        const sessionId = document.getElementById("sessionId").value;
+    async function handleMigration(event) {
+
+        event.preventDefault();
+
+        const file = elements.fileInput.files[0];
 
         if (!file) {
             alert("Please select a workbook.");
             return;
         }
 
-        uploadSection.style.display = "block";
-
-        submitBtn.disabled = true;
-
-        submitBtn.innerHTML = `
-            <span class="spinner-border spinner-border-sm me-2"></span>
-            Migrating...
-        `;
-
         const formData = new FormData();
-
         formData.append("file", file);
-        formData.append("sessionId", sessionId);
-        document.querySelectorAll(".sheet-name").forEach(cell => {
-            updateSheetStatus(cell.textContent.trim(), "PROCESSING");
-        });
+        formData.append("sessionId", elements.sessionId.value);
+
+        setLoading(true);
 
         try {
 
@@ -56,52 +80,76 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const result = await response.json();
 
-            if (result.success) {
-
-                updateSheetStatus(
-                    result.data.sheetName,
-                    result.data.isSuccess ? "COMPLETED" : "FAILED",
-                    result.data.status
-                );
-
-                alert(result.message);
-                console.log(result.data);
-
-            } else {
-
-                updateSheetStatus(
-                    selectedSheetName,
-                    "FAILED",
-                    result.error ?? result.message
-                );
-
-                alert(result.error ?? result.message);
+            if (!response.ok) {
+                updateAllSheetStatuses("PENDING");
+                alert(result.message || result.error || "Migration failed.");
+                console.error(result);
+                return;
             }
 
-        } catch (err) {
+            if (!result.success) {
+                alert(result.message || result.error);
+                return;
+            }
 
-            updateSheetStatus(
-                selectedSheetName,
-                "FAILED",
-                "Unable to connect to the server."
-            );
+            result.data.forEach(updateSheetFromResponse);
 
+            alert(result.message);
+
+        } catch (error) {
+
+            updateAllSheetStatuses("PENDING");
             alert("Unable to connect to the server.");
-            console.error(err);
+            console.error(error);
 
         } finally {
 
-            uploadSection.style.display = "none";
+            setLoading(false);
 
-            submitBtn.disabled = false;
+        }
+    }
 
-            submitBtn.innerHTML = `
-        <i class="bi bi-play-fill me-2"></i>
-        Start Migration
-    `;
+    // ============================
+    // Helpers
+    // ============================
+
+    function setLoading(isLoading) {
+
+        elements.progressSection.style.display = isLoading ? "block" : "none";
+
+        elements.submitBtn.disabled = isLoading;
+
+        elements.submitBtn.innerHTML = isLoading
+            ? `
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                Migrating...
+              `
+            : `
+                <i class="bi bi-play-fill me-2"></i>
+                Start Migration
+              `;
+    }
+
+    function updateSheetFromResponse(sheet) {
+
+        let status = "FAILED";
+
+        if (sheet.isSuccess) {
+            status = "COMPLETED";
+        } else if (sheet.status?.startsWith("Skipped")) {
+            status = "PENDING";
         }
 
-    });
+        updateSheetStatus(sheet.sheetName, status, sheet.status);
+    }
+
+    function updateAllSheetStatuses(status, message = "") {
+
+        document.querySelectorAll(".sheet-name").forEach(cell => {
+            updateSheetStatus(cell.textContent.trim(), status, message);
+        });
+
+    }
 
     function updateSheetStatus(sheetName, status, message = "") {
 
@@ -109,50 +157,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!row) return;
 
-        const statusCell = row.querySelector(".status-cell");
-        const messageCell = row.querySelector(".message-cell");
+        row.querySelector(".status-cell").innerHTML =
+            STATUS_BADGES[status] || STATUS_BADGES.PENDING;
 
-        let statusHtml = "";
-
-        switch (status) {
-
-            case "PROCESSING":
-                statusHtml = `
-                <span class="badge text-bg-primary">
-                    <span class="spinner-border spinner-border-sm me-1"></span>
-                    Processing
-                </span>
-            `;
-                break;
-
-            case "COMPLETED":
-                statusHtml = `
-                <span class="badge text-bg-success">
-                    <i class="bi bi-check-circle-fill me-1"></i>
-                    Completed
-                </span>
-            `;
-                break;
-
-            case "FAILED":
-                statusHtml = `
-                <span class="badge text-bg-danger">
-                    <i class="bi bi-x-circle-fill me-1"></i>
-                    Failed
-                </span>
-            `;
-                break;
-
-            default:
-                statusHtml = `
-                <span class="badge text-bg-secondary">
-                    Pending
-                </span>
-            `;
-        }
-
-        statusCell.innerHTML = statusHtml;
-        messageCell.textContent = message;
+        row.querySelector(".message-cell").textContent = message;
     }
 
 });

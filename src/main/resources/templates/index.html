@@ -94,7 +94,7 @@
 
                                 </label>
 
-                                <input type="file" class="form-control" id="file" name="file" accept=".xlsx,.xls"
+                                <input type="file" class="form-control" id="file" name="file" accept=".xlsx"
                                     required>
 
                                 <div class="form-text">
@@ -121,14 +121,14 @@
 
                             <!-- Progress -->
 
-                            <div id="uploadSection" class="mb-4" style="display:none;">
+                            <div id="progressSection" class="mb-4" style="display:none;">
 
                                 <div class="progress">
 
                                     <div class="progress-bar progress-bar-striped progress-bar-animated"
                                         style="width:100%;">
 
-                                        Uploading...
+                                        Processing...
 
                                     </div>
 
@@ -213,11 +213,6 @@
 
                                             <span th:case="'PENDING'" class="badge text-bg-secondary">
                                                 Pending
-                                            </span>
-
-                                            <span th:case="'PROCESSING'" class="badge text-bg-primary">
-                                                <span class="spinner-border spinner-border-sm me-1"></span>
-                                                Processing
                                             </span>
 
                                             <span th:case="'COMPLETED'" class="badge text-bg-success">

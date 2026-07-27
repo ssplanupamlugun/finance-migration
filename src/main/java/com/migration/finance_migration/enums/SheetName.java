@@ -2,7 +2,8 @@ package com.migration.finance_migration.enums;
 
 public enum SheetName {
 
-    BANK_ACCOUNT("Bank Account");
+    BANK_ACCOUNT("Bank Account"),
+    WORK_ORDER_MASTER("Work Order Master");
 
     private final String value;
 
