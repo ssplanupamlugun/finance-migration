@@ -18,6 +18,7 @@ Finance Migration is a Spring Boot application used to migrate finance master da
 
 * Java 21
 * Spring Boot 4.1.0
+* Postgres 12
 * Spring MVC
 * Thymeleaf
 * Spring Validation
@@ -150,15 +151,6 @@ Configure the application in:
 src/main/resources/application.yml
 ```
 
-Typical configuration includes:
-
-* Finance API Base URL
-* Authentication
-* Connection timeout
-* Read timeout
-* Batch size
-* Logging
-
 ---
 
 # Maven Dependencies
@@ -167,11 +159,13 @@ Major dependencies used:
 
 * Spring Boot Starter Web MVC
 * Spring Boot Thymeleaf
+* Spring Boot Starter Data JPA
 * Spring Validation
 * Spring WebClient
 * Apache POI
 * MapStruct
 * Lombok
+* Postgres
 
 ---
 
