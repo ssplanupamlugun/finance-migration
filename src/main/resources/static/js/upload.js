@@ -81,7 +81,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const result = await response.json();
 
             if (!response.ok) {
-                updateAllSheetStatuses("PENDING");
                 alert(result.message || result.error || "Migration failed.");
                 console.error(result);
                 return;
@@ -98,7 +97,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } catch (error) {
 
-            updateAllSheetStatuses("PENDING");
             alert("Unable to connect to the server.");
             console.error(error);
 
