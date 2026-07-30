@@ -64,10 +64,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ApiResponseDto> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex) {
-        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+        return ResponseEntity.status(HttpStatus.CONTENT_TOO_LARGE)
                 .body(ApiResponseDto.builder()
                         .success(false)
-                        .statusCode(HttpStatus.PAYLOAD_TOO_LARGE.value())
+                        .statusCode(HttpStatus.CONTENT_TOO_LARGE.value())
                         .message("Uploaded file size exceeds the allowed limit.")
                         .error(ex.getMessage())
                         .build());
